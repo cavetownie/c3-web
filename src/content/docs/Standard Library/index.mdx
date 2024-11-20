@@ -481,6 +481,57 @@ Return stdout, stdin and stderr respectively.
 
 ### File! open(String filename, String mode)
 Open a file with the given file name with the given mode (r, w etc)
+```c
+import std::io;
+
+fn void! main() 
+{
+    // Open "hello.txt" for reading
+    File! file = file::open("hello.txt", "r");
+    char[32] buf;
+    usz size;
+    
+    // Handle errors, e.g. FILE_NOT_FOUND
+    if (catch excuse = file) 
+    {
+        io::printfn("Open failed: %s", excuse);
+        return;
+    }
+   
+    // Try to read from the file
+    // If it fails, set size to 0
+    size = file.read(buf[..]) ?? 0;
+    
+    // Print output
+    io::print(buf[0..size]);
+}
+```
+
+### usz! File.read(&self, char[] buffer)
+Read into a buffer, based on the libc function.
+```c 
+import std::io;
+
+fn void! main() 
+{
+    File! file = file::open("hello.txt", "r");
+    char[32] buf;
+    usz size;
+
+    if (catch excuse = file) 
+    {
+        io::printfn("Open failed: %s", excuse);
+        return;
+    }
+   
+    // Try to read from the file
+    // If it fails, set size to 0
+    size = file.read(&buf) ?? 0;
+
+    // Print size
+    io::printfn("%s", ((String)&buf)[0..size]);
+}
+``` 
 
 ### File! open_path(Path path, String mode)
 Open a file pointed to by a Path struct, with the given mode.
@@ -508,9 +559,6 @@ Close a file, based on the libc function.
 
 ### bool File.eof(&self) @inline
 True if EOF has been reached. Based on the libc function.
-
-### usz! File.read(&self, char[] buffer)
-Read into a buffer, based on the libc function.
 
 ### usz! File.write(&self, char[] buffer)
 Write to a buffer, based on the libc function.
