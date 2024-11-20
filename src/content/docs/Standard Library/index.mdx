@@ -480,7 +480,7 @@ Return stdout, stdin and stderr respectively.
 ## std::io::file
 
 ### File! open(String filename, String mode)
-Open a file with the given file name with the given mode (r, w etc)
+Open a file with the given filename in given mode. "r" for read, "w" for write, etc.
 ```c
 import std::io;
 
@@ -488,8 +488,6 @@ fn void! main()
 {
     // Open "hello.txt" for reading
     File! file = file::open("hello.txt", "r");
-    char[32] buf;
-    usz size;
     
     // Handle errors, e.g. FILE_NOT_FOUND
     if (catch excuse = file) 
@@ -497,47 +495,76 @@ fn void! main()
         io::printfn("Open failed: %s", excuse);
         return;
     }
-   
-    // Try to read from the file
-    // If it fails, set size to 0
-    size = file.read(buf[..]) ?? 0;
-    
-    // Print output
-    io::print(buf[0..size]);
 }
 ```
 
 ### usz! File.read(&self, char[] buffer)
-Read into a buffer, based on the libc function.
+Read content from a file into a buffer. Return amount of bytes read.
+Based on the libc function.
 ```c 
 import std::io;
 
 fn void! main() 
 {
-    File! file = file::open("hello.txt", "r");
+    // (..) Open file
     char[32] buf;
-    usz size;
 
-    if (catch excuse = file) 
-    {
-        io::printfn("Open failed: %s", excuse);
-        return;
+    // Try to read from the file.
+    // If the read fails set size to 0 
+    usz size = file.read(&buf) ?? 0;
+    
+    if (size > 0) {
+        // Output as string
+        io::printfn("%s", (String)&buf);
     }
-   
-    // Try to read from the file
-    // If it fails, set size to 0
-    size = file.read(&buf) ?? 0;
-
-    // Print size
-    io::printfn("%s", ((String)&buf)[0..size]);
 }
 ``` 
 
-### File! open_path(Path path, String mode)
-Open a file pointed to by a Path struct, with the given mode.
+### usz! File.write(&self, char[] buffer)
+Write to a file based on a character input buffer. 
+Based on the libc function.
+```c
+import std::io;
+
+fn void! main() 
+{
+    // (..) Open file
+
+    usz! size = file.write("score: 50\n");
+    if (catch excuse = size) {
+        io::printfn("Write failed: %s", excuse);
+        return;
+    }
+
+    io::printfn("Wrote to file!");
+}
+```
+
+:::Note
+If the file is not already created you may have to use a mode such as w+
+to ensure that it is also made.
+:::
 
 ### bool is_file(String path)
-See whether the given path is a file.
+Check whether the given path is a file.
+```c 
+import std::io;
+
+fn void! main() 
+{
+    // Exists in current directory
+    String isfile = file::is_file("scoreboard.txt"); 
+
+    // Doesn't exist in current directory
+    String isnotfile = file::is_file("ellaminnowpea");
+    
+    io::printn(isfile); // true
+    io::printn(isnotfile); // false
+}
+```
+
+### File! open_path(Path path, String mode)
+Open a file pointed to by a Path struct, with the given mode.
 
 ### usz! get_size(String path)
 Get the size of a file.
@@ -559,9 +586,6 @@ Close a file, based on the libc function.
 
 ### bool File.eof(&self) @inline
 True if EOF has been reached. Based on the libc function.
-
-### usz! File.write(&self, char[] buffer)
-Write to a buffer, based on the libc function.
 
 ### char! File.read_byte(&self) @dynamic
 Read a single byte from a file.
