@@ -529,13 +529,10 @@ import std::io;
 fn void! main() 
 {
     // (..) Open file
-
-    usz! size = file.write("score: 50\n");
-    if (catch excuse = size) {
-        io::printfn("Write failed: %s", excuse);
-        return;
-    }
-
+    
+    // If file write fails, crashes with error
+    // See optionals for additional examples on handling
+    usz size = file.write("Score: 50\n")!!;
     io::printfn("Wrote to file!");
 }
 ```
@@ -564,10 +561,59 @@ fn void! main()
 ```
 
 ### File! open_path(Path path, String mode)
-Open a file pointed to by a Path struct, with the given mode.
+Open a file pointed to by a Path struct, with the given mode. 
+Allows for easy handling of folders and multiple files.
+```c
+import std::io;
+
+fn void! main() 
+{
+    String[*] files = {"app.c3", "db.c3", "route.c3"}; 
+    Path base_path, path;
+    char[2048] buf;
+
+    // Add default path as backend/
+    base_path = path::new("backend")!!;
+
+    // explore the backend folder 
+    // based on the defined files
+    foreach (current : files) 
+    {
+        path = base_path.new_append(current)!!;
+        File! file = file::open_path(path, "r");
+
+        if (catch excuse = file)
+        {
+            io::printfn("%s : %s", excuse, path);
+            continue;
+        }
+
+        file.read(&buf)!!;
+        io::print(buf);
+    }
+}
+```
 
 ### usz! get_size(String path)
 Get the size of a file.
+```c
+import std::io;
+
+fn void! main() 
+{
+    Path path;
+    usz size;
+
+    // Get size from file
+    size = file::get_size("hello.txt")!!; 
+    io::printn(size);
+    
+    // Get size from path
+    path = path::new("./hello.txt")!!;
+    size = file::get_size(path.basename())!!;
+    io::printn(size);
+}
+```
 
 ### void! delete(String filename)
 Delete a file.
